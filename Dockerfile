@@ -20,7 +20,9 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # --- User (UID 1000 for shared volume compatibility) ---
-RUN useradd -m -u 1000 -s /bin/bash ndtn
+# node:22 base image already has UID 1000 as 'node', so reassign it
+RUN usermod -l ndtn -d /home/ndtn -m node \
+    && groupmod -n ndtn node
 
 # --- Standard home directories ---
 RUN mkdir -p \
