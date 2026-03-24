@@ -1,0 +1,16 @@
+{
+  "name": "gttyd",
+  "version": "0.1.0",
+  "description": "Mobile-friendly web terminal powered by ghostty-web",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ghostty-web": "^0.4.0",
+    "@lydell/node-pty": "^1.1.0",
+    "ws": "^8.18.0"
+  },
+  "license": "MIT"
+}
