@@ -39,11 +39,37 @@ const KEYS = {
 let ws = null;
 let term = null;
 let ctrlActive = false;
+let lastTouchButton = null;
+let lastTouchTime = 0;
 
 function send(data) {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(data);
   }
+}
+
+function handleToolbarButton(btn) {
+  const key = btn.dataset.key;
+
+  // CTL toggle
+  if (key === "ctl") {
+    ctrlActive = !ctrlActive;
+    btn.classList.toggle("active", ctrlActive);
+    return;
+  }
+
+  let data = KEYS[key];
+  if (!data) return;
+
+  // CTL modifier: convert to control character
+  if (ctrlActive && data.length === 1) {
+    data = String.fromCharCode(data.toUpperCase().charCodeAt(0) - 64);
+    ctrlActive = false;
+    document.getElementById("btn-ctl").classList.remove("active");
+  }
+
+  send(data);
+  term.focus();
 }
 
 function connect() {
@@ -127,41 +153,44 @@ function setupToolbar() {
 
   // Prevent focus theft
   toolbar.addEventListener("touchstart", (e) => {
-    // Do not preventDefault here: iOS Safari needs the touch to continue so it can synthesize a click.
-    if (e.target.closest("button")) {
-      return;
-    }
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    e.preventDefault();
   }, { passive: false });
 
   toolbar.addEventListener("mousedown", (e) => {
     if (e.target.closest("button")) e.preventDefault();
   });
 
+  toolbar.addEventListener("touchend", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    e.preventDefault();
+    const touchTime = Date.now();
+    lastTouchButton = btn;
+    lastTouchTime = touchTime;
+    setTimeout(() => {
+      if (lastTouchTime === touchTime) {
+        lastTouchButton = null;
+      }
+    }, 800);
+    handleToolbarButton(btn);
+  });
+
   toolbar.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
 
-    const key = btn.dataset.key;
-
-    // CTL toggle
-    if (key === "ctl") {
-      ctrlActive = !ctrlActive;
-      ctlBtn.classList.toggle("active", ctrlActive);
+    if (btn === lastTouchButton && Date.now() - lastTouchTime < 700) {
+      e.preventDefault();
+      lastTouchButton = null;
       return;
     }
 
-    let data = KEYS[key];
-    if (!data) return;
-
-    // CTL modifier: convert to control character
-    if (ctrlActive && data.length === 1) {
-      data = String.fromCharCode(data.toUpperCase().charCodeAt(0) - 64);
-      ctrlActive = false;
-      ctlBtn.classList.remove("active");
-    }
-
-    send(data);
-    term.focus();
+    lastTouchButton = null;
+    handleToolbarButton(btn);
   });
 
   // CTL + virtual keyboard key
