@@ -15,7 +15,7 @@ html, body {
   height: 100%;
   background: var(--base);
   overflow: hidden;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 }
 
 #terminal-container {
@@ -53,7 +53,7 @@ html, body {
   color: var(--text);
   border: none;
   border-radius: 4px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
   font-size: 13px;
   cursor: pointer;
   user-select: none;

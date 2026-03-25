@@ -1,5 +1,7 @@
 import { init, Terminal, FitAddon } from "/ghostty-web.js";
 
+const MONO_FONT_FAMILY = '"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace';
+
 // Catppuccin Mocha theme
 const THEME = {
   background: "#1e1e2e",
@@ -46,6 +48,7 @@ let fitScheduled = false;
 async function fitWhenReady(fitAddon) {
   if (document.fonts?.ready) {
     try {
+      await document.fonts.load('16px "JetBrains Mono"');
       await document.fonts.ready;
     } catch {}
   }
@@ -120,7 +123,7 @@ async function main() {
 
   term = new Terminal({
     fontSize: 16,
-    fontFamily: "JetBrains Mono, Menlo, Monaco, Consolas, monospace",
+    fontFamily: MONO_FONT_FAMILY,
     theme: THEME,
     scrollback: 50000,
   });
