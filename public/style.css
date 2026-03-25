@@ -70,6 +70,7 @@ html, body {
 #terminal-container textarea,
 #terminal-container [contenteditable] {
   caret-color: transparent !important;
+  cursor: default !important;
 }
 #terminal-container textarea {
   opacity: 0 !important;
