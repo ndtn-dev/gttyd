@@ -1,0 +1,101 @@
+name: Build gttyd Image
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even if base image unchanged'
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: gttyd
+  BASE_IMAGE: node:22-bookworm-slim
+
+jobs:
+  check-base-image:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - name: Check if base image updated
+        id: check
+        run: |
+          BASE_DIGEST=$(docker manifest inspect ${{ env.BASE_IMAGE }} 2>/dev/null | jq -r '.manifests[0].digest // .config.digest // "unknown"' || echo "unknown")
+          echo "Base image digest: $BASE_DIGEST"
+
+          OUR_BASE=$(docker manifest inspect ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest 2>/dev/null | jq -r '.manifests[0].annotations["base.digest"] // "none"' || echo "none")
+          echo "Our cached base digest: $OUR_BASE"
+
+          if [[ "${{ github.event.inputs.force_build }}" == "true" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Reason: Force build requested"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Reason: Push event"
+          elif [[ "$BASE_DIGEST" != "$OUR_BASE" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Reason: Base image changed"
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "Reason: Base image unchanged, skipping build"
+          fi
+
+  build-and-push:
+    needs: check-base-image
+    if: needs.check-base-image.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get base image digest
+        id: base
+        run: |
+          DIGEST=$(docker manifest inspect ${{ env.BASE_IMAGE }} 2>/dev/null | jq -r '.manifests[0].digest // .config.digest // "unknown"')
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            base.digest=${{ steps.base.outputs.digest }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
