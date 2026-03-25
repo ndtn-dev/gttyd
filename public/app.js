@@ -82,9 +82,20 @@ async function main() {
   term.open(document.getElementById("terminal-container"));
   fitAddon.fit();
 
-  // Auto-resize on window/viewport changes
+  // Auto-resize and reposition toolbar when virtual keyboard opens/closes
+  const container = document.getElementById("terminal-container");
+  const toolbar = document.getElementById("toolbar");
+
+  function onViewportResize() {
+    const kbHeight = window.innerHeight - window.visualViewport.height;
+    toolbar.style.bottom = kbHeight + "px";
+    container.style.bottom = (44 + kbHeight) + "px";
+    fitAddon.fit();
+  }
+
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", () => fitAddon.fit());
+    window.visualViewport.addEventListener("resize", onViewportResize);
+    window.visualViewport.addEventListener("scroll", onViewportResize);
   }
   window.addEventListener("resize", () => fitAddon.fit());
 
