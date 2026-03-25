@@ -4,8 +4,9 @@ set -e
 HOME=/home/ndtn
 PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 
-# Fix ownership for mounted volumes
-chown -R ndtn:ndtn "$HOME/.claude" "$HOME/Projects" "$HOME/Documents" "$HOME/Downloads" 2>/dev/null || true
+# Fix ownership for mounted volumes (non-recursive for .claude to preserve file metadata)
+chown ndtn:ndtn "$HOME/.claude" 2>/dev/null || true
+chown -R ndtn:ndtn "$HOME/Projects" "$HOME/Documents" "$HOME/Downloads" 2>/dev/null || true
 chown ndtn:ndtn "$HOME/.ssh" 2>/dev/null || true
 
 # Setup SSH key if mounted (for GitHub auth)
