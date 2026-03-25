@@ -14,6 +14,9 @@ if [ -f /etc/gttyd/ssh-key ]; then
     cp /etc/gttyd/ssh-key "$HOME/.ssh/id_ed25519"
     chown ndtn:ndtn "$HOME/.ssh/id_ed25519"
     chmod 600 "$HOME/.ssh/id_ed25519"
+    # Derive public key from private key (needed for vault cert signing)
+    ssh-keygen -y -f "$HOME/.ssh/id_ed25519" > "$HOME/.ssh/id_ed25519.pub"
+    chown ndtn:ndtn "$HOME/.ssh/id_ed25519.pub"
     su -c "ssh-keyscan github.com >> $HOME/.ssh/known_hosts 2>/dev/null" ndtn || true
 fi
 
