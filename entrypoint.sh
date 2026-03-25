@@ -27,15 +27,25 @@ fi
 # Set default editor to neovim
 su -c "git config --global core.editor nvim" ndtn
 
+# Clone bricknet if not present (needed for vault scripts + SSH config)
+BRICKNET_DIR="$HOME/Projects/bricknet"
+if [ ! -d "$BRICKNET_DIR/.git" ] && [ -n "$GH_TOKEN" ]; then
+    /usr/sbin/runuser -u ndtn -- env GH_TOKEN="$GH_TOKEN" \
+        git clone https://x-access-token:${GH_TOKEN}@github.com/ndtn-dev/bricknet.git "$BRICKNET_DIR" 2>/dev/null || true
+fi
+
+# Include bricknet SSH config (for host aliases like 'core', 'outpost')
+BRICKNET_SSH_CONFIG="$BRICKNET_DIR/.ssh/config"
+if [ -f "$BRICKNET_SSH_CONFIG" ]; then
+    INCLUDE_LINE="Include $BRICKNET_SSH_CONFIG"
+    grep -qF "$INCLUDE_LINE" "$HOME/.ssh/config" 2>/dev/null || \
+        /usr/sbin/runuser -u ndtn -- bash -c "echo '$INCLUDE_LINE' >> $HOME/.ssh/config"
+fi
+
 # Vault SSH certificate signing (background)
 if [ -n "$VAULT_APPROLE_ROLE_ID" ] && [ -n "$VAULT_APPROLE_SECRET_ID" ]; then
     (
-        # Wait for bricknet repo to be available (might be cloned via Projects volume)
-        VAULT_SCRIPT="$HOME/Projects/bricknet/.ssh/vault-ssh-cert-sign.sh"
-        for i in $(seq 1 30); do
-            [ -f "$VAULT_SCRIPT" ] && break
-            sleep 2
-        done
+        VAULT_SCRIPT="$BRICKNET_DIR/.ssh/vault-ssh-cert-sign.sh"
 
         if [ -f "$VAULT_SCRIPT" ]; then
             # Generate SSH key if missing
@@ -46,14 +56,6 @@ if [ -n "$VAULT_APPROLE_ROLE_ID" ] && [ -n "$VAULT_APPROLE_SECRET_ID" ]; then
             # Init vault SSH cert signing via AppRole
             /usr/sbin/runuser -u ndtn -- bash "$VAULT_SCRIPT" init approle \
                 "$VAULT_APPROLE_ROLE_ID" "$VAULT_APPROLE_SECRET_ID" || true
-
-            # Include bricknet SSH config
-            BRICKNET_SSH_CONFIG="$HOME/Projects/bricknet/.ssh/config"
-            if [ -f "$BRICKNET_SSH_CONFIG" ]; then
-                INCLUDE_LINE="Include $BRICKNET_SSH_CONFIG"
-                grep -qF "$INCLUDE_LINE" "$HOME/.ssh/config" 2>/dev/null || \
-                    /usr/sbin/runuser -u ndtn -- bash -c "echo '$INCLUDE_LINE' >> $HOME/.ssh/config"
-            fi
 
             # Scan bricknet node host keys
             for ip in 192.9.239.160 192.168.1.99 163.192.47.113 46.225.132.171; do
