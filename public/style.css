@@ -66,6 +66,12 @@ html, body {
   color: var(--base);
 }
 
+/* Hide ghostty-web's hidden textarea caret */
+#terminal-container textarea {
+  opacity: 0 !important;
+  caret-color: transparent !important;
+}
+
 /* Handle iOS safe area */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   #toolbar {
