@@ -23,23 +23,27 @@ html, body {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 44px; /* toolbar height */
+  bottom: 0;
   padding: 4px;
 }
 
-/* Toolbar */
+/* Toolbar — hidden by default, shown when keyboard opens via JS */
 #toolbar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   height: 44px;
-  display: flex;
+  display: none;
   gap: 3px;
   padding: 4px 2px;
   background: var(--surface0);
   border-top: 1px solid var(--surface1);
   z-index: 9999;
+}
+
+#toolbar.visible {
+  display: flex;
 }
 
 #toolbar button {
@@ -73,13 +77,10 @@ html, body {
   cursor: default !important;
 }
 
-/* Handle iOS safe area */
+/* Handle iOS safe area when toolbar is visible */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-  #toolbar {
+  #toolbar.visible {
     padding-bottom: calc(4px + env(safe-area-inset-bottom));
     height: calc(44px + env(safe-area-inset-bottom));
-  }
-  #terminal-container {
-    bottom: calc(44px + env(safe-area-inset-bottom));
   }
 }

@@ -34,7 +34,6 @@ const KEYS = {
   down: "\x1b[B",
   left: "\x1b[D",
   right: "\x1b[C",
-  pipe: "|",
 };
 
 let ws = null;
@@ -82,14 +81,25 @@ async function main() {
   term.open(document.getElementById("terminal-container"));
   fitAddon.fit();
 
-  // Auto-resize and reposition toolbar when virtual keyboard opens/closes
+  // Show/hide toolbar and reposition when virtual keyboard opens/closes
   const container = document.getElementById("terminal-container");
   const toolbar = document.getElementById("toolbar");
+  const KB_THRESHOLD = 100; // pixels — below this, keyboard is considered closed
 
   function onViewportResize() {
     const kbHeight = window.innerHeight - window.visualViewport.height;
-    toolbar.style.bottom = kbHeight + "px";
-    container.style.bottom = (44 + kbHeight) + "px";
+    const kbOpen = kbHeight > KB_THRESHOLD;
+
+    toolbar.classList.toggle("visible", kbOpen);
+
+    if (kbOpen) {
+      toolbar.style.bottom = kbHeight + "px";
+      container.style.bottom = (44 + kbHeight) + "px";
+    } else {
+      toolbar.style.bottom = "0";
+      container.style.bottom = "0";
+    }
+
     fitAddon.fit();
   }
 
