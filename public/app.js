@@ -41,6 +41,29 @@ let term = null;
 let ctrlActive = false;
 let lastTouchButton = null;
 let lastTouchTime = 0;
+let fitScheduled = false;
+
+async function fitWhenReady(fitAddon) {
+  if (document.fonts?.ready) {
+    try {
+      await document.fonts.ready;
+    } catch {}
+  }
+
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  fitAddon.fit();
+  requestAnimationFrame(() => fitAddon.fit());
+}
+
+function scheduleFit(fitAddon) {
+  if (fitScheduled) return;
+  fitScheduled = true;
+
+  requestAnimationFrame(async () => {
+    fitScheduled = false;
+    await fitWhenReady(fitAddon);
+  });
+}
 
 function send(data) {
   if (ws && ws.readyState === WebSocket.OPEN) {
@@ -105,7 +128,7 @@ async function main() {
   const fitAddon = new FitAddon();
   term.loadAddon(fitAddon);
   term.open(document.getElementById("terminal-container"));
-  fitAddon.fit();
+  await fitWhenReady(fitAddon);
 
   // Show/hide toolbar and reposition when virtual keyboard opens/closes
   const container = document.getElementById("terminal-container");
@@ -126,14 +149,14 @@ async function main() {
       container.style.bottom = "0";
     }
 
-    fitAddon.fit();
+    scheduleFit(fitAddon);
   }
 
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", onViewportResize);
     window.visualViewport.addEventListener("scroll", onViewportResize);
   }
-  window.addEventListener("resize", () => fitAddon.fit());
+  window.addEventListener("resize", () => scheduleFit(fitAddon));
 
   // Send terminal input to PTY
   term.onData((data) => send(data));
