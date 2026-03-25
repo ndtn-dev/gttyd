@@ -67,6 +67,7 @@ html, body {
 }
 
 /* Hide ghostty-web's native browser carets */
+#terminal-container,
 #terminal-container textarea,
 #terminal-container [contenteditable] {
   caret-color: transparent !important;
