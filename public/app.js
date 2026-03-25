@@ -127,7 +127,10 @@ function setupToolbar() {
 
   // Prevent focus theft
   toolbar.addEventListener("touchstart", (e) => {
-    if (e.target.closest("button")) e.preventDefault();
+    // Do not preventDefault here: iOS Safari needs the touch to continue so it can synthesize a click.
+    if (e.target.closest("button")) {
+      return;
+    }
   }, { passive: false });
 
   toolbar.addEventListener("mousedown", (e) => {
