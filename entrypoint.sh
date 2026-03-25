@@ -4,6 +4,11 @@ set -e
 HOME=/home/ndtn
 PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 
+# Stable machine-id so Claude Code doesn't invalidate tokens on container recreate
+if [ ! -f /etc/machine-id ]; then
+    echo "gttyd-stable-machine-id-ndtn-ghostty" > /etc/machine-id
+fi
+
 # Fix ownership for mounted volumes (non-recursive for .claude to preserve file metadata)
 chown ndtn:ndtn "$HOME/.claude" 2>/dev/null || true
 chown -R ndtn:ndtn "$HOME/Projects" "$HOME/Documents" "$HOME/Downloads" 2>/dev/null || true
