@@ -32,7 +32,6 @@ html, body {
   font-variant-ligatures: none;
   font-feature-settings: 'liga' 0, 'calt' 0, 'kern' 0;
   font-kerning: none;
-  text-rendering: geometricPrecision;
 }
 
 /* Toolbar — hidden by default, shown when keyboard opens via JS */
