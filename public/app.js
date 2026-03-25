@@ -1,4 +1,4 @@
-import init, { Terminal, FitAddon } from "/ghostty-web.js";
+import { init, Terminal, FitAddon } from "/ghostty-web.js";
 
 // Catppuccin Mocha theme
 const THEME = {
