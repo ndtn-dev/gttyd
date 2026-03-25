@@ -66,15 +66,11 @@ html, body {
   color: var(--base);
 }
 
-/* Hide ghostty-web's native browser carets */
-#terminal-container,
-#terminal-container textarea,
-#terminal-container [contenteditable] {
+/* Hide ghostty-web's native browser caret and I-beam cursor.
+   ghostty-web sets contenteditable on #terminal-container directly. */
+#terminal-container {
   caret-color: transparent !important;
   cursor: default !important;
-}
-#terminal-container textarea {
-  opacity: 0 !important;
 }
 
 /* Handle iOS safe area */
