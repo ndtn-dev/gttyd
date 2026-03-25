@@ -66,10 +66,13 @@ html, body {
   color: var(--base);
 }
 
-/* Hide ghostty-web's hidden textarea caret */
+/* Hide ghostty-web's native browser carets */
+#terminal-container textarea,
+#terminal-container [contenteditable] {
+  caret-color: transparent !important;
+}
 #terminal-container textarea {
   opacity: 0 !important;
-  caret-color: transparent !important;
 }
 
 /* Handle iOS safe area */
